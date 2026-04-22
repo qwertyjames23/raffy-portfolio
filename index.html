@@ -190,16 +190,18 @@
     }
 
     /* ============================================================
-       SCROLL PROGRESS BAR
+       SCROLL PROGRESS BAR  (Phase 2: 2px, gradient 90deg, scaleX)
        ============================================================ */
     .scroll-progress {
       position: fixed;
       top: 0; left: 0;
-      width: 0%;
-      height: 1px;
-      background: var(--grad);
-      z-index: 9999;
-      will-change: width;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, #4f46e5, #ec4899);
+      z-index: 9998;
+      transform: scaleX(0);
+      transform-origin: 0 50%;
+      will-change: transform;
     }
 
     /* ============================================================
@@ -210,13 +212,16 @@
       top: 0; left: 0; right: 0;
       z-index: 100;
       padding: 18px 0;
-      background: rgba(250, 250, 247, 0.72);
-      backdrop-filter: saturate(180%) blur(14px);
-      -webkit-backdrop-filter: saturate(180%) blur(14px);
+      background: transparent;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
       border-bottom: 1px solid transparent;
-      transition: border-color 0.3s var(--ease), background 0.3s var(--ease), padding 0.3s var(--ease);
+      transition: border-color 0.3s var(--ease), background 0.3s var(--ease), backdrop-filter 0.3s var(--ease), padding 0.3s var(--ease);
     }
     .nav.is-scrolled {
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: saturate(180%) blur(12px);
+      -webkit-backdrop-filter: saturate(180%) blur(12px);
       border-bottom-color: var(--border);
       padding: 12px 0;
     }
@@ -332,28 +337,6 @@
       align-items: center;
       position: relative;
       overflow: hidden;
-    }
-    .hero::before {
-      content: '';
-      position: absolute;
-      top: -200px;
-      right: -200px;
-      width: 600px;
-      height: 600px;
-      background: radial-gradient(circle, rgba(79,70,229,0.06), transparent 70%);
-      pointer-events: none;
-      z-index: 0;
-    }
-    .hero::after {
-      content: '';
-      position: absolute;
-      bottom: -100px;
-      left: -100px;
-      width: 400px;
-      height: 400px;
-      background: radial-gradient(circle, rgba(236,72,153,0.05), transparent 70%);
-      pointer-events: none;
-      z-index: 0;
     }
     .hero .container {
       position: relative;
@@ -561,6 +544,13 @@
       display: inline-flex;
       align-items: center;
       gap: 56px;
+      transition: color 0.3s var(--ease), transform 0.3s var(--ease);
+      transform-origin: center;
+      cursor: pointer;
+    }
+    .marquee:hover .marquee-item:hover {
+      color: var(--accent);
+      transform: scale(1.1);
     }
     .marquee-item::after {
       content: '·';
@@ -662,6 +652,10 @@
       transform: translateY(-6px);
       box-shadow: var(--shadow-xl);
     }
+    /* Phase 2: enable 3D layering for vanilla-tilt children */
+    body.fx-enabled .project-card { transform-style: preserve-3d; }
+    body.fx-enabled .project-card .project-thumb { transform: translateZ(20px); }
+    body.fx-enabled .project-card .project-title { transform: translateZ(15px); }
 
     /* TODO: replace gradient thumbs with actual screenshots */
     /* Available files: iacollection_home_screenshot.PNG, aicollection_products_screenshot.PNG, rjmusic_home_screenshot.PNG, rjmusic_products_screenshot.PNG */
@@ -679,7 +673,9 @@
       letter-spacing: -0.02em;
       line-height: 1;
       text-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      transition: transform 0.35s var(--ease);
     }
+    .project-card:hover .project-thumb-initials { transform: scale(1.05); }
     .thumb-ia    { background: linear-gradient(135deg, #4f46e5, #7c3aed); }
     .thumb-mbot  { background: linear-gradient(135deg, #0891b2, #4f46e5); }
     .thumb-rj    { background: linear-gradient(135deg, #ec4899, #f97316); }
@@ -765,7 +761,10 @@
       border-radius: 9999px;
       background: var(--accent-soft);
       color: var(--accent-text);
+      transition: background 0.3s var(--ease);
     }
+    .project-card:hover .tag { background: #e0e7ff; } /* indigo-100 on card hover */
+
     .project-link {
       display: inline-flex;
       align-items: center;
@@ -776,11 +775,12 @@
       margin-top: 8px;
       padding-top: 18px;
       border-top: 1px solid var(--border);
-      transition: color 0.2s var(--ease);
+      transition: color 0.3s var(--ease);
     }
-    .project-link svg { width: 14px; height: 14px; transition: transform 0.25s var(--ease); }
+    .project-link svg { width: 14px; height: 14px; transition: transform 0.3s var(--ease); }
     .project-link:hover { color: var(--accent); }
-    .project-link:hover svg { transform: translate(3px, -3px); }
+    .project-card:hover .project-link svg { transform: translateX(4px); }
+    .project-link:hover svg { transform: translate(4px, -3px); }
 
     /* ============================================================
        STATS
@@ -1094,7 +1094,41 @@
       background-position: right 14px center;
       background-size: 16px;
       padding-right: 40px;
+      transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease), background 0.2s var(--ease);
     }
+    .form-select:focus {
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234f46e5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' transform='rotate(180)'><polyline points='6 9 12 15 18 9'/></svg>");
+    }
+
+    /* Phase 2: input focus — subtle indigo underline that scales in */
+    .form-row,
+    .form-row-split > div { position: relative; }
+    .form-row::after,
+    .form-row-split > div::after {
+      content: '';
+      position: absolute;
+      left: 16px;
+      right: 16px;
+      bottom: 0;
+      height: 2px;
+      background: var(--accent);
+      border-radius: 2px;
+      transform: scaleX(0);
+      transform-origin: left center;
+      transition: transform 0.35s var(--ease);
+      pointer-events: none;
+      opacity: 0;
+    }
+    .form-row:focus-within::after,
+    .form-row-split > div:focus-within::after {
+      transform: scaleX(1);
+      opacity: 0.6;
+    }
+
+    /* Phase 2: submit arrow slides + pulse on hover */
+    .contact-form .btn-primary svg { transition: transform 0.3s var(--ease), opacity 0.3s var(--ease); }
+    .contact-form .btn-primary:hover svg { transform: translateX(4px); opacity: 0.85; }
+
     .form-honeypot { position: absolute; left: -10000px; top: -10000px; visibility: hidden; }
 
     /* ============================================================
@@ -1131,6 +1165,194 @@
     body.motion-on .hero-ctas,
     body.motion-on .hero-photo {
       opacity: 0;
+    }
+
+    /* ============================================================
+       PHASE 2: CUSTOM CURSOR
+       ============================================================ */
+    .cursor-dot,
+    .cursor-ring {
+      position: fixed;
+      top: 0; left: 0;
+      pointer-events: none;
+      z-index: 99999;
+      opacity: 0;
+      transform: translate3d(-50%, -50%, 0);
+      will-change: transform, opacity;
+    }
+    .cursor-dot {
+      width: 8px;
+      height: 8px;
+      background: #4f46e5;
+      border-radius: 50%;
+      transition: opacity 0.3s var(--ease);
+    }
+    .cursor-ring {
+      width: 36px;
+      height: 36px;
+      border: 1.5px solid #4f46e5;
+      border-radius: 50%;
+      background: transparent;
+      transition:
+        opacity 0.3s var(--ease),
+        width 0.25s var(--ease),
+        height 0.25s var(--ease),
+        background 0.25s var(--ease),
+        border-radius 0.25s var(--ease),
+        border-color 0.25s var(--ease);
+    }
+    .cursor-dot.is-visible,
+    .cursor-ring.is-visible { opacity: 1; }
+    .cursor-ring.is-hover {
+      width: 60px;
+      height: 60px;
+      background: rgba(79, 70, 229, 0.2);
+      border-color: transparent;
+    }
+    .cursor-ring.is-input {
+      width: 3px;
+      height: 26px;
+      border-radius: 2px;
+      background: #4f46e5;
+      border-color: transparent;
+    }
+    body.cursor-on,
+    body.cursor-on * { cursor: none; }
+    /* Text caret for typing is controlled by caret-color, unaffected by cursor:none */
+
+    /* ============================================================
+       PHASE 2: MAGNETIC BUTTON (inner wrapper for text parallax)
+       ============================================================ */
+    .magnetic-inner {
+      display: inline-flex;
+      align-items: center;
+      gap: inherit;
+      pointer-events: none;
+      will-change: transform;
+    }
+
+    /* ============================================================
+       PHASE 2: NOISE TEXTURE OVERLAY
+       ============================================================ */
+    .noise-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.03;
+      mix-blend-mode: multiply;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+      background-size: 240px 240px;
+    }
+
+    /* ============================================================
+       PHASE 2: HERO GRADIENT MESH BACKGROUND
+       ============================================================ */
+    .hero-mesh {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .hero-mesh-circle {
+      position: absolute;
+      border-radius: 50%;
+      will-change: transform;
+    }
+    .hero-mesh-circle--indigo {
+      width: 500px;
+      height: 500px;
+      background: #4f46e5;
+      opacity: 0.15;
+      top: -100px;
+      left: -100px;
+      filter: blur(120px);
+    }
+    .hero-mesh-circle--pink {
+      width: 600px;
+      height: 600px;
+      background: #ec4899;
+      opacity: 0.10;
+      top: 200px;
+      right: -150px;
+      filter: blur(140px);
+    }
+    .hero-mesh-circle--amber {
+      width: 400px;
+      height: 400px;
+      background: #f59e0b;
+      opacity: 0.08;
+      bottom: -100px;
+      left: 40%;
+      filter: blur(100px);
+    }
+
+    /* ============================================================
+       PHASE 2: HERO NAME — SplitType chars + animated gradient
+       ============================================================ */
+    .hero-name .word {
+      display: inline-block;
+      overflow: hidden;
+      padding-bottom: 0.08em;  /* allow descenders without clipping */
+      line-height: 1.1;
+      vertical-align: top;
+    }
+    .hero-name .char {
+      display: inline-block;
+      will-change: transform, opacity;
+    }
+    .hero-name.is-gradient {
+      background-image: linear-gradient(
+        135deg,
+        #0a0a0a 0%,
+        #0a0a0a 30%,
+        #4f46e5 50%,
+        #ec4899 70%,
+        #0a0a0a 90%
+      );
+      background-size: 300% 100%;
+      background-repeat: no-repeat;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: transparent;
+      animation: gradientShift 8s linear infinite;
+    }
+    @keyframes gradientShift {
+      0%   { background-position: 0% 50%; }
+      100% { background-position: 300% 50%; }
+    }
+
+    /* ============================================================
+       PHASE 2: SECTION NUMBER INDICATOR (vertical left rail)
+       ============================================================ */
+    .section-indicator {
+      position: fixed;
+      top: 50%;
+      left: 28px;
+      z-index: 50;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.35s var(--ease);
+      transform: translateY(-50%);
+    }
+    .section-indicator-inner {
+      display: inline-block;
+      transform: rotate(-90deg);
+      transform-origin: left center;
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--text-2);
+      white-space: nowrap;
+    }
+    .section-indicator.is-visible { opacity: 1; }
+    .section-indicator-num {
+      color: var(--accent);
+      margin-right: 10px;
     }
 
     /* ============================================================
@@ -1187,6 +1409,18 @@
 
       .nav-links { display: none; }
       footer .container { flex-direction: column; text-align: center; gap: 8px; }
+
+      /* Phase 2: hide section indicator on mobile */
+      .section-indicator { display: none; }
+      /* Phase 2: drop amber mesh circle on mobile for perf */
+      .hero-mesh-circle--amber { display: none; }
+      .hero-mesh-circle--indigo,
+      .hero-mesh-circle--pink {
+        width: 320px;
+        height: 320px;
+        filter: blur(80px);
+      }
+      .hero-mesh-circle--pink { right: -120px; top: 140px; }
     }
 
     @media (max-width: 520px) {
@@ -1207,10 +1441,27 @@
       .marquee-track { animation: none; }
       .hero-badge-dot::after { animation: none; }
       .status-pill-live::before { animation: none; }
+      .hero-name.is-gradient { animation: none; }
+      /* Phase 2: hide enhancement layers entirely under reduced motion */
+      .cursor-dot, .cursor-ring, .section-indicator { display: none; }
     }
   </style>
 </head>
 <body>
+
+  <!-- ========= PHASE 2: Custom cursor ========= -->
+  <div class="cursor-ring" aria-hidden="true"></div>
+  <div class="cursor-dot"  aria-hidden="true"></div>
+
+  <!-- ========= PHASE 2: Noise texture overlay ========= -->
+  <div class="noise-overlay" aria-hidden="true"></div>
+
+  <!-- ========= PHASE 2: Vertical section indicator ========= -->
+  <div class="section-indicator" aria-hidden="true">
+    <span class="section-indicator-inner">
+      <span class="section-indicator-num">01</span><span class="section-indicator-label">What I Do</span>
+    </span>
+  </div>
 
   <!-- Scroll progress bar -->
   <div class="scroll-progress" aria-hidden="true"></div>
@@ -1233,6 +1484,12 @@
 
     <!-- ========= HERO ========= -->
     <section class="hero" id="hero">
+      <!-- Phase 2: animated gradient mesh background -->
+      <div class="hero-mesh" aria-hidden="true">
+        <div class="hero-mesh-circle hero-mesh-circle--indigo"></div>
+        <div class="hero-mesh-circle hero-mesh-circle--pink"></div>
+        <div class="hero-mesh-circle hero-mesh-circle--amber"></div>
+      </div>
       <div class="container">
         <div class="hero-content">
           <div class="hero-badge">
@@ -1808,6 +2065,10 @@
   <script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
   <!-- Typed.js -->
   <script src="https://unpkg.com/typed.js@2.1.0/dist/typed.umd.js"></script>
+  <!-- Phase 2: SplitType for letter-level hero animation -->
+  <script src="https://cdn.jsdelivr.net/npm/split-type@0.3.4/umd/index.min.js"></script>
+  <!-- Phase 2: Vanilla-Tilt for project card 3D tilt -->
+  <script src="https://cdn.jsdelivr.net/npm/vanilla-tilt@1.8.1/dist/vanilla-tilt.min.js"></script>
 
   <script>
     (function () {
@@ -1837,21 +2098,24 @@
         });
       }
 
-      // -------- Nav scroll shadow --------
+      // -------- Nav scroll state (Phase 2: threshold 50px) --------
       const nav = document.getElementById('nav');
       const navScrollHandler = () => {
-        if (window.scrollY > 10) nav.classList.add('is-scrolled');
+        if (window.scrollY > 50) nav.classList.add('is-scrolled');
         else nav.classList.remove('is-scrolled');
       };
       navScrollHandler();
 
-      // -------- Scroll progress bar --------
+      // -------- Scroll progress bar (scaleX, set via ScrollTrigger scrub in Phase 2 block) --------
       const progressEl = document.querySelector('.scroll-progress');
+      // Flag flipped by Phase 2: stops the manual writer fighting GSAP's scrub
+      window.__progressManaged = false;
       const updateProgress = () => {
+        if (window.__progressManaged) return;
         const doc = document.documentElement;
         const max = doc.scrollHeight - doc.clientHeight;
-        const pct = max > 0 ? (window.scrollY / max) * 100 : 0;
-        progressEl.style.width = pct + '%';
+        const pct = max > 0 ? (window.scrollY / max) : 0;
+        progressEl.style.transform = 'scaleX(' + pct + ')';
       };
       updateProgress();
 
@@ -1908,13 +2172,31 @@
 
         gsap.matchMedia().add('(prefers-reduced-motion: no-preference)', () => {
 
+          // ---- Phase 2: split hero name into characters if SplitType is loaded ----
+          let heroNameTargets = '.hero-name';
+          let heroNameFromVars = { y: 30, opacity: 0 };
+          let heroNameToVars  = { y: 0, opacity: 1, duration: 1.0 };
+          const heroNameEl = document.querySelector('.hero-name');
+          let splitInstance = null;
+          if (window.SplitType && heroNameEl) {
+            splitInstance = new SplitType(heroNameEl, { types: 'words, chars', tagName: 'span' });
+            heroNameTargets = heroNameEl.querySelectorAll('.char');
+            // Parent visible; chars pre-hidden so there's no flash before the timeline runs.
+            gsap.set(heroNameEl, { opacity: 1 });
+            gsap.set(heroNameTargets, { yPercent: 100, opacity: 0 });
+            heroNameFromVars = { yPercent: 100, opacity: 0 };
+            heroNameToVars   = { yPercent: 0, opacity: 1, duration: 0.8, ease: 'power4.out', stagger: 0.03 };
+          }
+
           // ---- Hero intro timeline ----
-          // Use fromTo so the end state is explicit (CSS initial-state rule keeps
-          // elements hidden until GSAP kicks in, preventing FOUC).
           const heroTl = gsap.timeline({ defaults: { ease: 'power3.out' } });
           heroTl
             .fromTo('.hero-badge',  { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, delay: 0.15 })
-            .fromTo('.hero-name',   { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 1.0 }, '-=0.4')
+            .fromTo(heroNameTargets, heroNameFromVars, heroNameToVars, '-=0.4')
+            .add(() => {
+              // Phase 2: kick off animated gradient sweep on the hero name
+              if (splitInstance && heroNameEl) heroNameEl.classList.add('is-gradient');
+            })
             .fromTo('.hero-role',   { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7 }, '-=0.6')
             .fromTo('.hero-desc',   { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7 }, '-=0.55')
             .fromTo('.hero-ctas',   { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7 }, '-=0.5')
@@ -1984,6 +2266,234 @@
 
           return () => {
             // cleanup fn (rarely called — only if matchMedia revokes)
+          };
+        });
+
+        /* ============================================================
+           PHASE 2: premium micro-interactions
+           Pointer:fine + motion-allowed only — touch/reduced-motion
+           users get the Phase 1 experience untouched.
+           ============================================================ */
+        gsap.matchMedia().add('(prefers-reduced-motion: no-preference) and (pointer: fine)', () => {
+          if ('ontouchstart' in window) return; // double-guard: skip hybrid touch laptops
+
+          /* ========= PHASE 2: CUSTOM CURSOR ========= */
+          const dot  = document.querySelector('.cursor-dot');
+          const ring = document.querySelector('.cursor-ring');
+          let cursorCleanup = () => {};
+
+          if (dot && ring) {
+            document.body.classList.add('cursor-on');
+
+            const xToDot  = gsap.quickTo(dot,  'x', { duration: 0.08, ease: 'power3.out' });
+            const yToDot  = gsap.quickTo(dot,  'y', { duration: 0.08, ease: 'power3.out' });
+            const xToRing = gsap.quickTo(ring, 'x', { duration: 0.3,  ease: 'power3.out' });
+            const yToRing = gsap.quickTo(ring, 'y', { duration: 0.3,  ease: 'power3.out' });
+
+            let firstMove = true;
+            const onMove = (e) => {
+              xToDot(e.clientX);  yToDot(e.clientY);
+              xToRing(e.clientX); yToRing(e.clientY);
+              if (firstMove) {
+                dot.classList.add('is-visible');
+                ring.classList.add('is-visible');
+                firstMove = false;
+              }
+            };
+            const onEnter = () => {
+              if (!firstMove) {
+                dot.classList.add('is-visible');
+                ring.classList.add('is-visible');
+              }
+            };
+            const onLeave = () => {
+              dot.classList.remove('is-visible');
+              ring.classList.remove('is-visible');
+            };
+
+            window.addEventListener('mousemove', onMove);
+            document.documentElement.addEventListener('mouseenter', onEnter);
+            document.documentElement.addEventListener('mouseleave', onLeave);
+
+            // Cursor state: hover vs input beam
+            const hoverSel = 'a, button, [role="button"], .project-card, .marquee-item, .social-link, .tag, .service-card';
+            const inputSel = 'input[type="text"], input[type="email"], input[type="search"], input[type="tel"], input[type="number"], input:not([type]), textarea';
+            const onOver = (e) => {
+              const input = e.target.closest(inputSel);
+              const hover = !input && e.target.closest(hoverSel);
+              ring.classList.toggle('is-input', !!input);
+              ring.classList.toggle('is-hover', !!hover);
+            };
+            const onOut = (e) => {
+              if (e.target.closest(hoverSel) || e.target.closest(inputSel)) {
+                ring.classList.remove('is-hover', 'is-input');
+              }
+            };
+            document.addEventListener('mouseover', onOver);
+            document.addEventListener('mouseout',  onOut);
+
+            cursorCleanup = () => {
+              window.removeEventListener('mousemove', onMove);
+              document.documentElement.removeEventListener('mouseenter', onEnter);
+              document.documentElement.removeEventListener('mouseleave', onLeave);
+              document.removeEventListener('mouseover', onOver);
+              document.removeEventListener('mouseout',  onOut);
+              document.body.classList.remove('cursor-on');
+            };
+          }
+
+          /* ========= PHASE 2: MAGNETIC BUTTONS ========= */
+          const magnetSelectors = [
+            '.nav-cta',
+            '.hero-ctas .btn',
+            '.contact-form button[type="submit"]',
+            '.contact-action-primary',
+            '.contact-action-secondary'
+          ].join(', ');
+          const magnetCleanups = [];
+          document.querySelectorAll(magnetSelectors).forEach((btn) => {
+            // Wrap children once in .magnetic-inner so text parallaxes at 0.5x
+            if (!btn.querySelector('.magnetic-inner')) {
+              const inner = document.createElement('span');
+              inner.className = 'magnetic-inner';
+              while (btn.firstChild) inner.appendChild(btn.firstChild);
+              btn.appendChild(inner);
+            }
+            const inner = btn.querySelector('.magnetic-inner');
+            const bx = gsap.quickTo(btn,   'x', { duration: 0.4, ease: 'power2.out' });
+            const by = gsap.quickTo(btn,   'y', { duration: 0.4, ease: 'power2.out' });
+            const ix = gsap.quickTo(inner, 'x', { duration: 0.4, ease: 'power2.out' });
+            const iy = gsap.quickTo(inner, 'y', { duration: 0.4, ease: 'power2.out' });
+
+            const RANGE = 80;
+            const MAX   = 12;
+            const onMove = (e) => {
+              const r = btn.getBoundingClientRect();
+              const cx = r.left + r.width / 2;
+              const cy = r.top  + r.height / 2;
+              const dx = e.clientX - cx;
+              const dy = e.clientY - cy;
+              const dist = Math.hypot(dx, dy);
+              if (dist < RANGE && dist > 0) {
+                const s = 1 - dist / RANGE;
+                // direction vector × max × proximity
+                let tx = (dx / dist) * MAX * s;
+                let ty = (dy / dist) * MAX * s;
+                bx(tx);  by(ty);
+                ix(tx * 0.5);  iy(ty * 0.5);
+              } else {
+                bx(0); by(0); ix(0); iy(0);
+              }
+            };
+            const onLeave = () => { bx(0); by(0); ix(0); iy(0); };
+
+            btn.addEventListener('mousemove', onMove);
+            btn.addEventListener('mouseleave', onLeave);
+            magnetCleanups.push(() => {
+              btn.removeEventListener('mousemove', onMove);
+              btn.removeEventListener('mouseleave', onLeave);
+              gsap.set(btn, { x: 0, y: 0 });
+              gsap.set(inner, { x: 0, y: 0 });
+            });
+          });
+
+          /* ========= PHASE 2: VANILLA-TILT on project cards ========= */
+          if (window.VanillaTilt) {
+            document.body.classList.add('fx-enabled');
+            VanillaTilt.init(document.querySelectorAll('.project-card'), {
+              max: 6,
+              speed: 800,
+              glare: true,
+              'max-glare': 0.15,
+              perspective: 1200,
+              reset: true,
+              transition: true
+            });
+          }
+
+          /* ========= PHASE 2: SCROLL PROGRESS BAR (scrub) ========= */
+          const progressEl = document.querySelector('.scroll-progress');
+          let progressST = null;
+          if (progressEl) {
+            window.__progressManaged = true;
+            progressST = gsap.to(progressEl, {
+              scaleX: 1,
+              ease: 'none',
+              scrollTrigger: {
+                start: 0,
+                end: () => document.documentElement.scrollHeight - window.innerHeight,
+                scrub: 0.3,
+                invalidateOnRefresh: true
+              }
+            });
+          }
+
+          /* ========= PHASE 2: VERTICAL SECTION INDICATOR ========= */
+          const indicator = document.querySelector('.section-indicator');
+          const indNum    = document.querySelector('.section-indicator-num');
+          const indLabel  = document.querySelector('.section-indicator-label');
+          const sectionSTs = [];
+          if (indicator && indNum && indLabel) {
+            const sections = [
+              { id: 'services',     num: '01', label: 'What I Do' },
+              { id: 'about',        num: '02', label: 'About' },
+              { id: 'projects',     num: '03', label: 'Selected Work' },
+              { id: 'skills',       num: '04', label: 'Stack' },
+              { id: 'testimonials', num: '05', label: 'Social Proof' },
+              { id: 'contact',      num: '06', label: 'Get In Touch' }
+            ];
+            sections.forEach(({ id, num, label }) => {
+              const el = document.getElementById(id);
+              if (!el) return;
+              sectionSTs.push(ScrollTrigger.create({
+                trigger: el,
+                start: 'top 45%',
+                end:   'bottom 45%',
+                onToggle: (self) => {
+                  if (self.isActive) {
+                    indNum.textContent   = num;
+                    indLabel.textContent = label;
+                    indicator.classList.add('is-visible');
+                  }
+                }
+              }));
+            });
+            // Hide indicator while hero is occupying most of the viewport
+            const hero = document.getElementById('hero');
+            if (hero) {
+              sectionSTs.push(ScrollTrigger.create({
+                trigger: hero,
+                start: 'top top',
+                end:   'bottom 55%',
+                onToggle: (self) => {
+                  if (self.isActive) indicator.classList.remove('is-visible');
+                }
+              }));
+            }
+          }
+
+          /* ========= PHASE 2: HERO MESH — slow drift ========= */
+          const mesh = {
+            indigo: document.querySelector('.hero-mesh-circle--indigo'),
+            pink:   document.querySelector('.hero-mesh-circle--pink'),
+            amber:  document.querySelector('.hero-mesh-circle--amber')
+          };
+          const meshTweens = [];
+          if (mesh.indigo) meshTweens.push(gsap.to(mesh.indigo, { x: 30,  y: 20,  duration: 12, ease: 'sine.inOut', yoyo: true, repeat: -1 }));
+          if (mesh.pink)   meshTweens.push(gsap.to(mesh.pink,   { x: -35, y: 30,  duration: 16, ease: 'sine.inOut', yoyo: true, repeat: -1 }));
+          if (mesh.amber)  meshTweens.push(gsap.to(mesh.amber,  { x: 25,  y: -30, duration: 20, ease: 'sine.inOut', yoyo: true, repeat: -1 }));
+
+          // ---- Cleanup when matchMedia revokes ----
+          return () => {
+            cursorCleanup();
+            magnetCleanups.forEach(fn => fn());
+            meshTweens.forEach(t => t.kill());
+            if (progressST) { progressST.kill(); window.__progressManaged = false; }
+            sectionSTs.forEach(st => st.kill());
+            if (window.VanillaTilt) {
+              document.querySelectorAll('.project-card').forEach(c => c.vanillaTilt && c.vanillaTilt.destroy());
+            }
+            document.body.classList.remove('fx-enabled');
           };
         });
 
