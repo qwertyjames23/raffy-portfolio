@@ -64,6 +64,9 @@
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <!-- Phase 3: resource hints for JS CDN hosts -->
+  <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
+  <link rel="dns-prefetch" href="https://unpkg.com" />
   <link rel="preload" as="image" href="raffy.png" fetchpriority="high" />
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 
@@ -820,6 +823,16 @@
       text-transform: uppercase;
       color: var(--text-2);
     }
+    .stat-spark {
+      display: block;
+      width: 80px;
+      height: 24px;
+      margin-top: 14px;
+      opacity: 0.75;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .stat-spark { display: none; }
+    }
 
     /* ============================================================
        SKILLS
@@ -1303,25 +1316,12 @@
       will-change: transform, opacity;
     }
     .hero-name.is-gradient {
-      background-image: linear-gradient(
-        135deg,
-        #0a0a0a 0%,
-        #0a0a0a 30%,
-        #4f46e5 50%,
-        #ec4899 70%,
-        #0a0a0a 90%
-      );
-      background-size: 300% 100%;
-      background-repeat: no-repeat;
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
-      color: transparent;
-      animation: gradientShift 8s linear infinite;
-    }
-    @keyframes gradientShift {
-      0%   { background-position: 0% 50%; }
-      100% { background-position: 300% 50%; }
+      background: none;
+      -webkit-background-clip: border-box;
+      background-clip: border-box;
+      -webkit-text-fill-color: var(--text);
+      color: var(--text);
+      animation: none;
     }
 
     /* ============================================================
@@ -1444,13 +1444,584 @@
       .hero-name.is-gradient { animation: none; }
       /* Phase 2: hide enhancement layers entirely under reduced motion */
       .cursor-dot, .cursor-ring, .section-indicator { display: none; }
+      /* Phase 3: skip loader + heavy effects entirely */
+      .loader, .kbd-hint, .kbd-modal { display: none !important; }
     }
+
+    /* ============================================================
+       PHASE 3: PAGE LOADER
+       ============================================================ */
+    .loader {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: all;
+      will-change: transform;
+    }
+    .loader.is-hidden { display: none; }
+    body.loader-active { overflow: hidden; }
+    .loader-inner {
+      text-align: center;
+      transform: translateY(-6%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .loader-r {
+      font-family: var(--serif);
+      font-size: 96px;
+      font-weight: 400;
+      color: var(--text);
+      line-height: 1;
+      display: inline-block;
+      opacity: 0;
+      transform: scale(0.82);
+      filter: blur(14px);
+      will-change: transform, opacity, filter;
+    }
+    .loader-r::after {
+      content: '';
+      display: block;
+      width: 0;
+      height: 2px;
+      background: var(--accent);
+      margin: 8px auto 0;
+      border-radius: 2px;
+      transition: width 0.5s 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .loader-r.is-drawn::after { width: 60%; }
+    .loader-tagline {
+      font-family: var(--sans);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: var(--text-2);
+      margin-top: 30px;
+      opacity: 0;
+      transform: translateY(8px);
+      will-change: opacity, transform;
+    }
+
+    /* ============================================================
+       PHASE 3: PROJECT CARD — mac window chrome + ghost cursor
+       ============================================================ */
+    .project-thumb {
+      background: #f4f4f0;
+    }
+    .project-thumb img.project-screenshot {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top center;
+      transition: transform 0.5s var(--ease);
+    }
+    .project-card:hover .project-thumb img.project-screenshot {
+      transform: scale(1.04);
+    }
+    .project-thumb-chrome {
+      position: absolute;
+      top: 10px; left: 12px;
+      display: flex;
+      gap: 6px;
+      z-index: 2;
+      opacity: 0;
+      transform: translateY(-4px);
+      transition: opacity 0.35s var(--ease), transform 0.35s var(--ease);
+      pointer-events: none;
+    }
+    .project-card:hover .project-thumb-chrome {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .project-thumb-chrome span {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      display: block;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.18);
+    }
+    .project-thumb-chrome span:nth-child(1) { background: #ff5f57; }
+    .project-thumb-chrome span:nth-child(2) { background: #febc2e; }
+    .project-thumb-chrome span:nth-child(3) { background: #28c840; }
+    .project-thumb-cursor {
+      position: absolute;
+      width: 22px; height: 22px;
+      top: 50%; left: 30%;
+      pointer-events: none;
+      opacity: 0;
+      transform: translate(-50%, -50%);
+      z-index: 3;
+      transition: opacity 0.25s var(--ease);
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.25));
+    }
+    .project-card[data-live="true"]:hover .project-thumb-cursor {
+      opacity: 1;
+      animation: ghostCursorPath 2.6s var(--ease) infinite;
+    }
+    @keyframes ghostCursorPath {
+      0%   { left: 22%; top: 65%; }
+      30%  { left: 45%; top: 40%; }
+      55%  { left: 70%; top: 55%; }
+      80%  { left: 55%; top: 75%; }
+      100% { left: 22%; top: 65%; }
+    }
+
+    /* ============================================================
+       PHASE 3: PINNED SERVICES (desktop ≥1024px)
+       ============================================================ */
+    .services-pin-wrap { position: relative; display: none; }
+
+    @media (min-width: 1024px) {
+      body.pin-ready .services-pin-wrap { display: block; }
+      body.pin-ready .services .services-grid { display: none; }
+      body.pin-ready .services-pin-inner {
+        grid-template-columns: 40fr 60fr;
+        gap: 80px;
+        min-height: 100vh;
+        align-items: center;
+      }
+      body.pin-ready .services-pin-heading {
+        position: relative;
+      }
+      body.pin-ready .services-pin-stage {
+        position: relative;
+        height: 460px;
+      }
+      body.pin-ready .services-pin-card {
+        position: absolute;
+        inset: 0;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        padding: 56px 48px;
+        box-shadow: var(--shadow-xl);
+        opacity: 0;
+        transform: translateX(60px) rotateY(-8deg);
+        transform-origin: center center;
+        will-change: transform, opacity;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+      body.pin-ready .services-pin-card .service-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
+      }
+      body.pin-ready .services-pin-card .service-icon svg {
+        width: 26px;
+        height: 26px;
+      }
+      body.pin-ready .services-pin-card .service-title {
+        font-size: 32px;
+      }
+      body.pin-ready .services-pin-card .service-desc {
+        font-size: 15px;
+        line-height: 1.7;
+        max-width: 440px;
+      }
+      body.pin-ready .services-pin-dots {
+        position: absolute;
+        right: 24px;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        z-index: 5;
+      }
+      body.pin-ready .services-pin-dot {
+        width: 8px; height: 8px;
+        border-radius: 50%;
+        background: var(--border);
+        transition: background 0.3s var(--ease), transform 0.3s var(--ease);
+      }
+      body.pin-ready .services-pin-dot.is-active {
+        background: var(--accent);
+        transform: scale(1.4);
+      }
+      body.pin-ready .services-pin-heading-title {
+        font-family: var(--serif);
+        font-weight: 400;
+        font-size: clamp(44px, 5.5vw, 68px);
+        line-height: 1.02;
+        letter-spacing: -0.02em;
+        color: var(--text);
+        margin-bottom: 20px;
+      }
+      body.pin-ready .services-pin-heading-sub {
+        font-size: 17px;
+        line-height: 1.55;
+        color: var(--text-2);
+        max-width: 360px;
+        min-height: 60px;
+        position: relative;
+      }
+      body.pin-ready .services-pin-heading-sub .sub-line {
+        display: block;
+        opacity: 0;
+        transform: translateY(10px);
+        transition: opacity 0.4s var(--ease), transform 0.4s var(--ease);
+        position: absolute;
+        top: 0; left: 0; right: 0;
+      }
+      body.pin-ready .services-pin-heading-sub .sub-line.is-active {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ============================================================
+       PHASE 3: TESTIMONIAL CAROUSEL
+       ============================================================ */
+    .testimonials-carousel {
+      position: relative;
+      padding: 40px 0 20px;
+    }
+    .testimonials-viewport {
+      overflow: hidden;
+      margin: 0 -24px;
+      padding: 40px 24px;
+    }
+    .testimonials-track {
+      display: flex;
+      gap: 24px;
+      will-change: transform;
+      touch-action: pan-y;
+    }
+    .testimonials-track .testimonial {
+      flex: 0 0 auto;
+      width: 280px; /* default; overridden by JS to viewport / 3 */
+      opacity: 0.4;
+      transform: scale(0.85);
+      transition: opacity 0.7s var(--ease), transform 0.7s var(--ease), box-shadow 0.7s var(--ease);
+      min-height: 280px;
+    }
+    .testimonials-track .testimonial.is-active {
+      opacity: 1;
+      transform: scale(1);
+      box-shadow: var(--shadow-xl);
+    }
+    .testimonials-controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      margin-top: 36px;
+    }
+    .carousel-arrow {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      display: grid; place-items: center;
+      color: var(--text);
+      transition: transform 0.2s var(--ease), background 0.2s var(--ease), border-color 0.2s var(--ease), color 0.2s var(--ease);
+      cursor: pointer;
+    }
+    .carousel-arrow:hover {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+    .carousel-arrow svg { width: 16px; height: 16px; }
+    .carousel-dots {
+      display: flex;
+      gap: 8px;
+    }
+    .carousel-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--border);
+      transition: background 0.3s var(--ease), transform 0.3s var(--ease), width 0.3s var(--ease);
+      cursor: pointer;
+      padding: 0;
+      border: none;
+    }
+    .carousel-dot.is-active {
+      background: var(--accent);
+      width: 24px;
+      border-radius: 4px;
+    }
+
+    @media (max-width: 960px) {
+      .testimonials-track .testimonial {
+        flex: 0 0 100%;
+        opacity: 1;
+        transform: scale(1);
+      }
+      .testimonials-viewport { padding: 20px 16px; }
+    }
+
+    /* ============================================================
+       PHASE 3: FOOTER SIGNATURE MOMENT
+       ============================================================ */
+    .footer-signature {
+      padding: 140px 0 60px;
+      text-align: left;
+      position: relative;
+    }
+    .footer-headline {
+      font-family: var(--serif);
+      font-weight: 400;
+      font-size: clamp(56px, 12vw, 160px);
+      line-height: 0.95;
+      letter-spacing: -0.03em;
+      color: var(--text);
+      margin: 0 0 40px;
+      max-width: 100%;
+    }
+    .footer-headline .word {
+      display: inline-block;
+      overflow: hidden;
+      padding-bottom: 0.1em;
+      vertical-align: top;
+    }
+    .footer-headline .char {
+      display: inline-block;
+      will-change: transform;
+    }
+    .footer-headline.is-gradient {
+      background-image: linear-gradient(135deg, #0a0a0a 0%, #0a0a0a 30%, #4f46e5 50%, #ec4899 70%, #0a0a0a 90%);
+      background-size: 300% 100%;
+      background-repeat: no-repeat;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: transparent;
+      animation: gradientShift 9s linear infinite;
+    }
+    .footer-email-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 20px;
+      font-family: var(--serif);
+      font-size: clamp(28px, 4.5vw, 56px);
+      font-weight: 400;
+      color: var(--text);
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      transition: color 0.3s var(--ease);
+      position: relative;
+    }
+    .footer-email-link::after {
+      content: '';
+      position: absolute;
+      left: 0; right: 24%;
+      bottom: -8px;
+      height: 2px;
+      background: var(--accent);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.45s var(--ease);
+    }
+    .footer-email-link:hover { color: var(--accent); }
+    .footer-email-link:hover::after { transform: scaleX(1); }
+    .footer-email-arrow {
+      display: inline-grid;
+      place-items: center;
+      width: clamp(44px, 6vw, 72px);
+      height: clamp(44px, 6vw, 72px);
+      border-radius: 50%;
+      background: var(--text);
+      color: var(--bg);
+      transition: transform 0.3s var(--ease), background 0.3s var(--ease);
+    }
+    .footer-email-arrow svg {
+      width: 40%; height: 40%;
+      transition: transform 0.3s var(--ease);
+    }
+    .footer-email-link:hover .footer-email-arrow {
+      background: var(--accent);
+      transform: rotate(-45deg);
+    }
+    .footer-email-link:hover .footer-email-arrow svg {
+      transform: rotate(45deg);
+    }
+    .footer-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      margin-top: 100px;
+      padding-top: 32px;
+      border-top: 1px solid var(--border);
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-2);
+    }
+    .footer-meta-col { display: flex; gap: 24px; flex-wrap: wrap; }
+
+    @media (max-width: 720px) {
+      .footer-signature { padding: 80px 0 40px; }
+      .footer-email-link { gap: 12px; }
+      .footer-meta { flex-direction: column; align-items: flex-start; gap: 12px; margin-top: 56px; }
+    }
+
+    /* ============================================================
+       PHASE 3: CURSOR — View Live / View Code on project cards
+       ============================================================ */
+    .cursor-ring.is-card {
+      width: 84px;
+      height: 84px;
+      background: rgba(79, 70, 229, 0.95);
+      border-color: transparent;
+      color: white;
+      display: grid;
+      place-items: center;
+    }
+    .cursor-ring-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: white;
+      opacity: 0;
+      transition: opacity 0.18s var(--ease);
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .cursor-ring.is-card .cursor-ring-label { opacity: 1; }
+    .cursor-ring.is-pulsing {
+      transform: translate3d(-50%, -50%, 0) scale(1.2) !important;
+      transition: transform 0.15s var(--ease);
+    }
+
+    /* ============================================================
+       PHASE 3: KEYBOARD SHORTCUTS
+       ============================================================ */
+    .kbd-hint {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      display: grid;
+      place-items: center;
+      font-family: var(--mono);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      z-index: 90;
+      box-shadow: var(--shadow);
+      transition: transform 0.2s var(--ease), background 0.2s var(--ease), color 0.2s var(--ease), border-color 0.2s var(--ease);
+    }
+    .kbd-hint:hover {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+    @media (max-width: 960px), (pointer: coarse) {
+      .kbd-hint { display: none; }
+    }
+    .kbd-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 10001;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .kbd-modal.is-open { display: flex; }
+    .kbd-modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(10, 10, 10, 0.4);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      opacity: 0;
+      transition: opacity 0.2s var(--ease);
+    }
+    .kbd-modal.is-open .kbd-modal-backdrop { opacity: 1; }
+    .kbd-modal-card {
+      position: relative;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 36px 40px;
+      max-width: 440px;
+      width: 100%;
+      box-shadow: var(--shadow-xl);
+      transform: scale(0.96) translateY(8px);
+      opacity: 0;
+      transition: opacity 0.25s var(--ease), transform 0.25s var(--ease);
+    }
+    .kbd-modal.is-open .kbd-modal-card {
+      transform: scale(1) translateY(0);
+      opacity: 1;
+    }
+    .kbd-modal h3 {
+      font-family: var(--serif);
+      font-weight: 400;
+      font-size: 26px;
+      margin-bottom: 24px;
+      color: var(--text);
+    }
+    .kbd-list { display: flex; flex-direction: column; gap: 12px; }
+    .kbd-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      font-size: 13px;
+      color: var(--text-2);
+    }
+    .kbd-row kbd {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 500;
+      padding: 4px 9px;
+      background: var(--surface-subtle);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      min-width: 24px;
+      text-align: center;
+      display: inline-block;
+    }
+    .kbd-combo { display: inline-flex; gap: 6px; align-items: center; }
+    .kbd-combo span { font-size: 11px; color: var(--muted); }
+    .kbd-close {
+      position: absolute;
+      top: 14px; right: 14px;
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: transparent;
+      color: var(--text-2);
+      display: grid; place-items: center;
+      cursor: pointer;
+      transition: background 0.2s var(--ease), color 0.2s var(--ease);
+    }
+    .kbd-close:hover { background: var(--surface-subtle); color: var(--text); }
+    .kbd-close svg { width: 16px; height: 16px; }
   </style>
 </head>
 <body>
 
-  <!-- ========= PHASE 2: Custom cursor ========= -->
-  <div class="cursor-ring" aria-hidden="true"></div>
+  <!-- ========= PHASE 3: Page loader (first-visit only) ========= -->
+  <div class="loader" id="loader" aria-hidden="true">
+    <div class="loader-inner">
+      <span class="loader-r">R</span>
+      <div class="loader-tagline">Crafting AI automation from the Philippines</div>
+    </div>
+  </div>
+
+  <!-- ========= PHASE 2: Custom cursor (Phase 3 adds label span for project cards) ========= -->
+  <div class="cursor-ring" aria-hidden="true"><span class="cursor-ring-label"></span></div>
   <div class="cursor-dot"  aria-hidden="true"></div>
 
   <!-- ========= PHASE 2: Noise texture overlay ========= -->
@@ -1574,6 +2145,30 @@
             <p class="service-desc">Connect your tools with n8n, Zapier, Make, or custom multi-agent pipelines. Stop doing things by hand.</p>
           </article>
         </div>
+
+        <!-- ========= PHASE 3: Pinned Services (desktop-only) ========= -->
+        <div class="services-pin-wrap" aria-hidden="true">
+          <div class="services-pin-inner">
+            <div class="services-pin-heading">
+              <h3 class="services-pin-heading-title">What I build.</h3>
+              <div class="services-pin-heading-sub">
+                <span class="sub-line is-active">Chatbots that sell while you sleep.</span>
+                <span class="sub-line">Leads that actually convert.</span>
+                <span class="sub-line">Web apps that won't break.</span>
+                <span class="sub-line">Automation that works overnight.</span>
+              </div>
+            </div>
+            <div class="services-pin-stage">
+              <!-- Cards are cloned from .services-grid at runtime -->
+            </div>
+            <div class="services-pin-dots">
+              <span class="services-pin-dot is-active"></span>
+              <span class="services-pin-dot"></span>
+              <span class="services-pin-dot"></span>
+              <span class="services-pin-dot"></span>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -1642,10 +2237,13 @@
         <div class="projects-grid reveal-stagger">
 
           <!-- Project 1: iacollection.shop -->
-          <!-- TODO: replace .project-thumb with <img src="iacollection_home_screenshot.PNG"> -->
-          <article class="project-card">
+          <article class="project-card" data-live="true" data-link-label="View Live">
             <div class="project-thumb thumb-ia">
-              <span class="project-thumb-initials">IA</span>
+              <div class="project-thumb-chrome" aria-hidden="true"><span></span><span></span><span></span></div>
+              <img class="project-screenshot" src="iacollection_home_screenshot.PNG" alt="iacollection.shop home page screenshot" width="600" height="300" loading="lazy" />
+              <svg class="project-thumb-cursor" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M5 3l14 9-5.5 2L11 21z" fill="#ffffff" stroke="#0a0a0a" stroke-width="1.5" stroke-linejoin="round"/>
+              </svg>
             </div>
             <div class="project-body">
               <div class="project-status-row">
@@ -1667,8 +2265,9 @@
           </article>
 
           <!-- Project 2: Messenger Order Bot -->
-          <article class="project-card">
+          <article class="project-card" data-live="false" data-link-label="View Code">
             <div class="project-thumb thumb-mbot">
+              <div class="project-thumb-chrome" aria-hidden="true"><span></span><span></span><span></span></div>
               <span class="project-thumb-initials">MB</span>
             </div>
             <div class="project-body">
@@ -1691,10 +2290,13 @@
           </article>
 
           <!-- Project 3: rjmusic E-Commerce -->
-          <!-- TODO: replace .project-thumb with <img src="rjmusic_home_screenshot.PNG"> -->
-          <article class="project-card">
+          <article class="project-card" data-live="true" data-link-label="View Live">
             <div class="project-thumb thumb-rj">
-              <span class="project-thumb-initials">RJ</span>
+              <div class="project-thumb-chrome" aria-hidden="true"><span></span><span></span><span></span></div>
+              <img class="project-screenshot" src="rjmusic_home_screenshot.PNG" alt="rjmusic.shop home page screenshot" width="600" height="300" loading="lazy" />
+              <svg class="project-thumb-cursor" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M5 3l14 9-5.5 2L11 21z" fill="#ffffff" stroke="#0a0a0a" stroke-width="1.5" stroke-linejoin="round"/>
+              </svg>
             </div>
             <div class="project-body">
               <div class="project-status-row">
@@ -1716,9 +2318,13 @@
           </article>
 
           <!-- Project 4: AutoAudit.AI -->
-          <article class="project-card">
+          <article class="project-card" data-live="true" data-link-label="View Live">
             <div class="project-thumb thumb-aa">
+              <div class="project-thumb-chrome" aria-hidden="true"><span></span><span></span><span></span></div>
               <span class="project-thumb-initials">AA</span>
+              <svg class="project-thumb-cursor" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M5 3l14 9-5.5 2L11 21z" fill="#ffffff" stroke="#0a0a0a" stroke-width="1.5" stroke-linejoin="round"/>
+              </svg>
             </div>
             <div class="project-body">
               <div class="project-status-row">
@@ -1739,8 +2345,9 @@
           </article>
 
           <!-- Project 5: Multi-Agent Pipeline -->
-          <article class="project-card">
+          <article class="project-card" data-live="false" data-link-label="View Code">
             <div class="project-thumb thumb-mac">
+              <div class="project-thumb-chrome" aria-hidden="true"><span></span><span></span><span></span></div>
               <span class="project-thumb-initials">MA</span>
             </div>
             <div class="project-body">
@@ -1762,8 +2369,9 @@
           </article>
 
           <!-- Project 6: PacePilot -->
-          <article class="project-card">
+          <article class="project-card" data-live="false" data-link-label="View Code">
             <div class="project-thumb thumb-pp">
+              <div class="project-thumb-chrome" aria-hidden="true"><span></span><span></span><span></span></div>
               <span class="project-thumb-initials">PP</span>
             </div>
             <div class="project-body">
@@ -1795,18 +2403,32 @@
           <div class="stat">
             <div class="stat-num" data-count="2">0</div>
             <div class="stat-label">Live E-Commerce Platforms</div>
+            <svg class="stat-spark" viewBox="0 0 80 24" fill="none" aria-hidden="true">
+              <path class="stat-spark-line" d="M2,22 L16,18 L30,20 L44,12 L58,8 L72,4 L78,2" stroke="#4f46e5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
           </div>
           <div class="stat">
             <div class="stat-num" data-count="1">0</div>
             <div class="stat-label">Production Chatbot</div>
+            <svg class="stat-spark" viewBox="0 0 80 24" fill="none" aria-hidden="true">
+              <path class="stat-spark-line" d="M40,23 L40,2" stroke="#4f46e5" stroke-width="8" stroke-linecap="round"/>
+            </svg>
           </div>
           <div class="stat">
             <div class="stat-num stat-num-accent">&lt;24h</div>
             <div class="stat-label">Response Time</div>
+            <svg class="stat-spark" viewBox="0 0 80 24" fill="none" aria-hidden="true">
+              <rect x="0" y="9" width="80" height="6" rx="3" fill="#eef2ff"/>
+              <path class="stat-spark-line" d="M2,12 L78,12" stroke="#4f46e5" stroke-width="6" stroke-linecap="round"/>
+            </svg>
           </div>
           <div class="stat">
             <div class="stat-num stat-num-accent">100%</div>
             <div class="stat-label">Remote Ready</div>
+            <svg class="stat-spark" viewBox="0 0 80 24" fill="none" aria-hidden="true">
+              <circle cx="40" cy="12" r="9" stroke="#eef2ff" stroke-width="3"/>
+              <circle class="stat-spark-line" cx="40" cy="12" r="9" stroke="#4f46e5" stroke-width="3" stroke-linecap="round" transform="rotate(-90 40 12)"/>
+            </svg>
           </div>
         </div>
       </div>
@@ -1889,50 +2511,98 @@
           <div class="eyebrow">05 — Social Proof</div>
           <h2 class="section-title">What people say.</h2>
         </div>
-        <div class="testimonials-grid reveal-stagger">
+        <!-- ========= PHASE 3: Testimonial carousel (5 scaffold cards, TODO: replace) ========= -->
+        <div class="testimonials-carousel reveal" id="testimonialsCarousel">
+          <div class="testimonials-viewport">
+            <div class="testimonials-track">
 
-          <!-- TODO: Replace with real testimonial -->
-          <article class="testimonial">
-            <svg class="testimonial-quote-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h2c0 5-2 6-3 6v2zm16 0c3 0 7-1 7-8V5c0-1.25-.75-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h2c0 5-2 6-3 6v2z" transform="translate(-2 0)"/></svg>
-            <p class="testimonial-text">Client testimonial coming soon.</p>
-            <div class="testimonial-divider"></div>
-            <div class="testimonial-person">
-              <div class="testimonial-avatar" aria-hidden="true">—</div>
-              <div>
-                <div class="testimonial-name">Client name</div>
-                <div class="testimonial-role">Role · Company</div>
-              </div>
+              <!-- TODO: Replace with real testimonial -->
+              <article class="testimonial">
+                <svg class="testimonial-quote-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h2c0 5-2 6-3 6v2zm16 0c3 0 7-1 7-8V5c0-1.25-.75-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h2c0 5-2 6-3 6v2z" transform="translate(-2 0)"/></svg>
+                <p class="testimonial-text">A real quote from a client this portfolio shipped for will live here.</p>
+                <div class="testimonial-divider"></div>
+                <div class="testimonial-person">
+                  <div class="testimonial-avatar" aria-hidden="true">—</div>
+                  <div>
+                    <div class="testimonial-name">Client one</div>
+                    <div class="testimonial-role">Role · Company</div>
+                  </div>
+                </div>
+              </article>
+
+              <!-- TODO: Replace with real testimonial -->
+              <article class="testimonial">
+                <svg class="testimonial-quote-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h2c0 5-2 6-3 6v2zm16 0c3 0 7-1 7-8V5c0-1.25-.75-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h2c0 5-2 6-3 6v2z" transform="translate(-2 0)"/></svg>
+                <p class="testimonial-text">Space reserved for a short, kind word from someone whose workflow now runs itself.</p>
+                <div class="testimonial-divider"></div>
+                <div class="testimonial-person">
+                  <div class="testimonial-avatar" aria-hidden="true">—</div>
+                  <div>
+                    <div class="testimonial-name">Client two</div>
+                    <div class="testimonial-role">Role · Company</div>
+                  </div>
+                </div>
+              </article>
+
+              <!-- TODO: Replace with real testimonial -->
+              <article class="testimonial">
+                <svg class="testimonial-quote-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h2c0 5-2 6-3 6v2zm16 0c3 0 7-1 7-8V5c0-1.25-.75-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h2c0 5-2 6-3 6v2z" transform="translate(-2 0)"/></svg>
+                <p class="testimonial-text">Honest feedback from a real project that shipped on time and stayed shipped.</p>
+                <div class="testimonial-divider"></div>
+                <div class="testimonial-person">
+                  <div class="testimonial-avatar" aria-hidden="true">—</div>
+                  <div>
+                    <div class="testimonial-name">Client three</div>
+                    <div class="testimonial-role">Role · Company</div>
+                  </div>
+                </div>
+              </article>
+
+              <!-- TODO: Replace with real testimonial -->
+              <article class="testimonial">
+                <svg class="testimonial-quote-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h2c0 5-2 6-3 6v2zm16 0c3 0 7-1 7-8V5c0-1.25-.75-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h2c0 5-2 6-3 6v2z" transform="translate(-2 0)"/></svg>
+                <p class="testimonial-text">A few lines describing what changed for a team after the bot went live.</p>
+                <div class="testimonial-divider"></div>
+                <div class="testimonial-person">
+                  <div class="testimonial-avatar" aria-hidden="true">—</div>
+                  <div>
+                    <div class="testimonial-name">Client four</div>
+                    <div class="testimonial-role">Role · Company</div>
+                  </div>
+                </div>
+              </article>
+
+              <!-- TODO: Replace with real testimonial -->
+              <article class="testimonial">
+                <svg class="testimonial-quote-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h2c0 5-2 6-3 6v2zm16 0c3 0 7-1 7-8V5c0-1.25-.75-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h2c0 5-2 6-3 6v2z" transform="translate(-2 0)"/></svg>
+                <p class="testimonial-text">The final placeholder — your story could be the one that closes this carousel.</p>
+                <div class="testimonial-divider"></div>
+                <div class="testimonial-person">
+                  <div class="testimonial-avatar" aria-hidden="true">—</div>
+                  <div>
+                    <div class="testimonial-name">Client five</div>
+                    <div class="testimonial-role">Role · Company</div>
+                  </div>
+                </div>
+              </article>
+
             </div>
-          </article>
-
-          <!-- TODO: Replace with real testimonial -->
-          <article class="testimonial">
-            <svg class="testimonial-quote-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h2c0 5-2 6-3 6v2zm16 0c3 0 7-1 7-8V5c0-1.25-.75-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h2c0 5-2 6-3 6v2z" transform="translate(-2 0)"/></svg>
-            <p class="testimonial-text">Client testimonial coming soon.</p>
-            <div class="testimonial-divider"></div>
-            <div class="testimonial-person">
-              <div class="testimonial-avatar" aria-hidden="true">—</div>
-              <div>
-                <div class="testimonial-name">Client name</div>
-                <div class="testimonial-role">Role · Company</div>
-              </div>
+          </div>
+          <div class="testimonials-controls">
+            <button class="carousel-arrow carousel-prev" type="button" aria-label="Previous testimonial">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <div class="carousel-dots" role="tablist">
+              <button class="carousel-dot is-active" type="button" aria-label="Testimonial 1"></button>
+              <button class="carousel-dot" type="button" aria-label="Testimonial 2"></button>
+              <button class="carousel-dot" type="button" aria-label="Testimonial 3"></button>
+              <button class="carousel-dot" type="button" aria-label="Testimonial 4"></button>
+              <button class="carousel-dot" type="button" aria-label="Testimonial 5"></button>
             </div>
-          </article>
-
-          <!-- TODO: Replace with real testimonial -->
-          <article class="testimonial">
-            <svg class="testimonial-quote-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h2c0 5-2 6-3 6v2zm16 0c3 0 7-1 7-8V5c0-1.25-.75-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h2c0 5-2 6-3 6v2z" transform="translate(-2 0)"/></svg>
-            <p class="testimonial-text">Client testimonial coming soon.</p>
-            <div class="testimonial-divider"></div>
-            <div class="testimonial-person">
-              <div class="testimonial-avatar" aria-hidden="true">—</div>
-              <div>
-                <div class="testimonial-name">Client name</div>
-                <div class="testimonial-role">Role · Company</div>
-              </div>
-            </div>
-          </article>
-
+            <button class="carousel-arrow carousel-next" type="button" aria-label="Next testimonial">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+            </button>
+          </div>
         </div>
       </div>
     </section>
@@ -1974,7 +2644,7 @@
             <div class="contact-actions">
               <a class="contact-action contact-action-primary" href="https://calendly.com/raffyjamesadams5/30min" target="_blank" rel="noopener">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
-                Book a 15-min Call
+                Book a 30-min Call
               </a>
               <a class="contact-action contact-action-secondary" href="/Raffy_James_Adams_Resume.pdf" download>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
@@ -2049,13 +2719,48 @@
 
   </main>
 
-  <!-- ========= FOOTER ========= -->
-  <footer>
+  <!-- ========= PHASE 3: FOOTER SIGNATURE MOMENT ========= -->
+  <footer class="footer-signature">
     <div class="container">
-      <div class="footer-text">© 2026 Raffy James Adams</div>
-      <div class="footer-text">Designed and built in the Philippines 🇵🇭</div>
+      <h2 class="footer-headline">Let's make something.</h2>
+      <a href="mailto:raffyjamesadams5@gmail.com" class="footer-email-link">
+        <span class="footer-email-text">raffyjamesadams5@gmail.com</span>
+        <span class="footer-email-arrow" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </span>
+      </a>
+      <div class="footer-meta">
+        <div class="footer-meta-col">
+          <span>© 2026 Raffy James Adams</span>
+        </div>
+        <div class="footer-meta-col">
+          <span>Built in the Philippines 🇵🇭</span>
+        </div>
+      </div>
     </div>
   </footer>
+
+  <!-- ========= PHASE 3: Keyboard shortcuts (desktop-only) ========= -->
+  <button class="kbd-hint" id="kbdHint" type="button" aria-label="Show keyboard shortcuts">?</button>
+  <div class="kbd-modal" id="kbdModal" role="dialog" aria-modal="true" aria-labelledby="kbdModalTitle" aria-hidden="true">
+    <div class="kbd-modal-backdrop"></div>
+    <div class="kbd-modal-card">
+      <button class="kbd-close" type="button" aria-label="Close shortcuts">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+      </button>
+      <h3 id="kbdModalTitle">Keyboard shortcuts</h3>
+      <div class="kbd-list">
+        <div class="kbd-row"><span>Jump to Services</span><span class="kbd-combo"><kbd>G</kbd><span>then</span><kbd>S</kbd></span></div>
+        <div class="kbd-row"><span>Jump to Projects</span><span class="kbd-combo"><kbd>G</kbd><span>then</span><kbd>P</kbd></span></div>
+        <div class="kbd-row"><span>Jump to Contact</span><span class="kbd-combo"><kbd>G</kbd><span>then</span><kbd>C</kbd></span></div>
+        <div class="kbd-row"><span>Focus contact form</span><span class="kbd-combo"><kbd>/</kbd></span></div>
+        <div class="kbd-row"><span>Show this help</span><span class="kbd-combo"><kbd>?</kbd></span></div>
+        <div class="kbd-row"><span>Close</span><span class="kbd-combo"><kbd>Esc</kbd></span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sound design not implemented per user preference -->
 
   <!-- ========= SCRIPTS ========= -->
   <!-- GSAP + ScrollTrigger -->
@@ -2076,9 +2781,63 @@
 
       const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       const isMobile       = window.matchMedia('(max-width: 768px)').matches;
+      const isDesktop      = window.matchMedia('(min-width: 1024px)').matches;
 
       // Add motion-on class only if user allows animation — CSS key for reveal initial states
       if (!prefersReduced) document.body.classList.add('motion-on');
+
+      /* ========= PHASE 3: PAGE LOADER ========= */
+      const loaderEl = document.getElementById('loader');
+      const LOADER_KEY = '__raffy_loader_shown_v1';
+      let loaderAlreadyShown = false;
+      try { loaderAlreadyShown = sessionStorage.getItem(LOADER_KEY) === '1'; } catch (e) {}
+      const shouldShowLoader = !prefersReduced && !loaderAlreadyShown && !!loaderEl && !!window.gsap;
+      // heroStartDelay is read by the hero timeline below to sync with loader exit
+      let heroStartDelay = 0;
+
+      if (!loaderEl) {
+        // nothing to do
+      } else if (!shouldShowLoader) {
+        loaderEl.classList.add('is-hidden');
+      } else {
+        try { sessionStorage.setItem(LOADER_KEY, '1'); } catch (e) {}
+        document.body.classList.add('loader-active');
+        heroStartDelay = 1.0; // hero begins as loader starts sliding up
+
+        const loaderR = loaderEl.querySelector('.loader-r');
+        const loaderTag = loaderEl.querySelector('.loader-tagline');
+
+        const loaderTl = gsap.timeline();
+        loaderTl
+          .to(loaderR, {
+            opacity: 1,
+            scale: 1,
+            filter: 'blur(0px)',
+            duration: 0.55,
+            ease: 'power3.out',
+            onStart: () => loaderR.classList.add('is-drawn')
+          })
+          .to(loaderTag, {
+            opacity: 1,
+            y: 0,
+            duration: 0.4,
+            ease: 'power2.out'
+          }, 0.5)
+          .to([loaderR, loaderTag], {
+            opacity: 0,
+            duration: 0.25,
+            ease: 'power2.in'
+          }, 0.85)
+          .to(loaderEl, {
+            yPercent: -100,
+            duration: 0.7,
+            ease: 'power4.inOut',
+            onComplete: () => {
+              loaderEl.classList.add('is-hidden');
+              document.body.classList.remove('loader-active');
+            }
+          }, 1.0);
+      }
 
       // -------- Typed.js --------
       if (window.Typed) {
@@ -2189,13 +2948,18 @@
           }
 
           // ---- Hero intro timeline ----
-          const heroTl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+          // Phase 3: heroStartDelay (set above by loader) syncs with loader panel exit
+          const heroTl = gsap.timeline({ delay: heroStartDelay, defaults: { ease: 'power3.out' } });
           heroTl
             .fromTo('.hero-badge',  { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, delay: 0.15 })
             .fromTo(heroNameTargets, heroNameFromVars, heroNameToVars, '-=0.4')
             .add(() => {
-              // Phase 2: kick off animated gradient sweep on the hero name
-              if (splitInstance && heroNameEl) heroNameEl.classList.add('is-gradient');
+              // Clear inline transforms from chars so they don't create stacking contexts
+              // that break background-clip:text on the parent (.is-gradient).
+              if (splitInstance && heroNameEl) {
+                gsap.set(heroNameTargets, { clearProps: 'transform,willChange' });
+                heroNameEl.classList.add('is-gradient');
+              }
             })
             .fromTo('.hero-role',   { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7 }, '-=0.6')
             .fromTo('.hero-desc',   { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7 }, '-=0.55')
@@ -2245,6 +3009,27 @@
             });
           });
 
+          // ---- Phase 3: Footer headline word stagger reveal ----
+          const footerHeadline = document.querySelector('.footer-headline');
+          if (footerHeadline && window.SplitType) {
+            new SplitType(footerHeadline, { types: 'words, chars', tagName: 'span' });
+            const footerChars = footerHeadline.querySelectorAll('.char');
+            gsap.set(footerChars, { yPercent: 110, opacity: 0 });
+            gsap.to(footerChars, {
+              yPercent: 0,
+              opacity: 1,
+              duration: 0.9,
+              ease: 'power4.out',
+              stagger: 0.022,
+              scrollTrigger: {
+                trigger: footerHeadline,
+                start: 'top 88%',
+                once: true
+              },
+              onComplete: () => footerHeadline.classList.add('is-gradient')
+            });
+          }
+
           // ---- Stat counters ----
           gsap.utils.toArray('[data-count]').forEach((el) => {
             const target = parseInt(el.dataset.count, 10);
@@ -2264,8 +3049,94 @@
             });
           });
 
+          // ---- Stat sparklines (Phase 3: animated SVG micro-graphs) ----
+          gsap.utils.toArray('.stat-spark-line').forEach((path) => {
+            const len = path.getTotalLength ? path.getTotalLength() : 80;
+            gsap.set(path, { strokeDasharray: len, strokeDashoffset: len });
+            gsap.to(path, {
+              strokeDashoffset: 0,
+              duration: 1.4,
+              ease: 'power2.inOut',
+              scrollTrigger: {
+                trigger: path,
+                start: 'top 88%',
+                once: true
+              }
+            });
+          });
+
           return () => {
             // cleanup fn (rarely called — only if matchMedia revokes)
+          };
+        });
+
+        /* ============================================================
+           PHASE 3: PINNED SERVICES — desktop ≥1024px, motion allowed
+           ============================================================ */
+        gsap.matchMedia().add('(prefers-reduced-motion: no-preference) and (min-width: 1024px)', () => {
+          const pinWrap   = document.querySelector('.services-pin-wrap');
+          const pinStage  = document.querySelector('.services-pin-stage');
+          const dotsEls   = document.querySelectorAll('.services-pin-dot');
+          const subLines  = document.querySelectorAll('.services-pin-heading-sub .sub-line');
+          if (!pinWrap || !pinStage) return;
+
+          // Clone the 4 service cards from the mobile grid into the pinned stage
+          const sourceCards = document.querySelectorAll('.services-grid .service-card');
+          const pinCards = [];
+          sourceCards.forEach((src, i) => {
+            const clone = src.cloneNode(true);
+            clone.classList.remove('service-card');
+            clone.classList.add('services-pin-card');
+            clone.setAttribute('data-idx', String(i));
+            pinStage.appendChild(clone);
+            pinCards.push(clone);
+          });
+          if (pinCards.length !== 4) return;
+
+          document.body.classList.add('pin-ready');
+
+          // Initial card states: card 0 in, others offscreen right
+          gsap.set(pinCards[0], { opacity: 1, x: 0, rotationY: 0 });
+          pinCards.slice(1).forEach(c => gsap.set(c, { opacity: 0, x: 80, rotationY: -8 }));
+
+          // Pinned scroll timeline
+          const pinTl = gsap.timeline({
+            defaults: { ease: 'power2.inOut' },
+            scrollTrigger: {
+              trigger: pinWrap,
+              start: 'top top+=80',
+              end: '+=400%',
+              pin: true,
+              scrub: 1,
+              pinSpacing: true,
+              anticipatePin: 1,
+              invalidateOnRefresh: true,
+              onUpdate: (self) => {
+                const p = self.progress;
+                const idx = p < 0.167 ? 0 : p < 0.5 ? 1 : p < 0.833 ? 2 : 3;
+                dotsEls.forEach((d, i) => d.classList.toggle('is-active', i === idx));
+                subLines.forEach((s, i) => s.classList.toggle('is-active', i === idx));
+              }
+            }
+          });
+
+          // 3 transitions: 0→1, 1→2, 2→3
+          for (let i = 0; i < 3; i++) {
+            pinTl
+              .to(pinCards[i],     { opacity: 0, x: -80, rotationY: 8, duration: 1 }, i)
+              .to(pinCards[i + 1], { opacity: 1, x: 0,   rotationY: 0, duration: 1 }, i);
+          }
+
+          // Force a refresh once layout settles (loader / Lenis can shift heights)
+          requestAnimationFrame(() => ScrollTrigger.refresh());
+
+          return () => {
+            if (pinTl.scrollTrigger) pinTl.scrollTrigger.kill();
+            pinTl.kill();
+            pinCards.forEach(c => c.remove());
+            dotsEls.forEach((d, i) => d.classList.toggle('is-active', i === 0));
+            subLines.forEach((s, i) => s.classList.toggle('is-active', i === 0));
+            document.body.classList.remove('pin-ready');
           };
         });
 
@@ -2315,22 +3186,35 @@
             document.documentElement.addEventListener('mouseenter', onEnter);
             document.documentElement.addEventListener('mouseleave', onLeave);
 
-            // Cursor state: hover vs input beam
-            const hoverSel = 'a, button, [role="button"], .project-card, .marquee-item, .social-link, .tag, .service-card';
+            // Cursor state: project-card > input > hover
+            const hoverSel = 'a, button, [role="button"], .marquee-item, .social-link, .tag, .service-card';
             const inputSel = 'input[type="text"], input[type="email"], input[type="search"], input[type="tel"], input[type="number"], input:not([type]), textarea';
+            const cardLabel = ring.querySelector('.cursor-ring-label');
             const onOver = (e) => {
               const input = e.target.closest(inputSel);
-              const hover = !input && e.target.closest(hoverSel);
+              const card  = !input && e.target.closest('.project-card[data-link-label]');
+              const hover = !input && !card && (e.target.closest(hoverSel) || e.target.closest('.project-card'));
               ring.classList.toggle('is-input', !!input);
+              ring.classList.toggle('is-card',  !!card);
               ring.classList.toggle('is-hover', !!hover);
+              if (card && cardLabel) {
+                cardLabel.textContent = card.getAttribute('data-link-label') || 'View';
+              }
             };
             const onOut = (e) => {
-              if (e.target.closest(hoverSel) || e.target.closest(inputSel)) {
-                ring.classList.remove('is-hover', 'is-input');
+              if (e.target.closest(hoverSel) || e.target.closest(inputSel) || e.target.closest('.project-card')) {
+                ring.classList.remove('is-hover', 'is-input', 'is-card');
               }
             };
             document.addEventListener('mouseover', onOver);
             document.addEventListener('mouseout',  onOut);
+
+            // Phase 3: click pulse on project cards
+            const onCardDown = (e) => { if (e.target.closest('.project-card')) ring.classList.add('is-pulsing'); };
+            const onCardUp   = ()  => ring.classList.remove('is-pulsing');
+            document.addEventListener('mousedown', onCardDown);
+            document.addEventListener('mouseup',   onCardUp);
+            document.addEventListener('mouseleave', onCardUp);
 
             cursorCleanup = () => {
               window.removeEventListener('mousemove', onMove);
@@ -2338,6 +3222,9 @@
               document.documentElement.removeEventListener('mouseleave', onLeave);
               document.removeEventListener('mouseover', onOver);
               document.removeEventListener('mouseout',  onOut);
+              document.removeEventListener('mousedown', onCardDown);
+              document.removeEventListener('mouseup',   onCardUp);
+              document.removeEventListener('mouseleave', onCardUp);
               document.body.classList.remove('cursor-on');
             };
           }
@@ -2504,6 +3391,89 @@
             el.textContent = el.dataset.count;
           });
         });
+
+        /* ============================================================
+           PHASE 3: TESTIMONIAL CAROUSEL
+           Runs on all devices. Auto-rotate skipped under reduced motion.
+           ============================================================ */
+        (function initCarousel() {
+          const carousel = document.getElementById('testimonialsCarousel');
+          if (!carousel) return;
+          const track = carousel.querySelector('.testimonials-track');
+          const cards = Array.from(track.querySelectorAll('.testimonial'));
+          const dots  = Array.from(carousel.querySelectorAll('.carousel-dot'));
+          const prev  = carousel.querySelector('.carousel-prev');
+          const next  = carousel.querySelector('.carousel-next');
+          const total = cards.length;
+          if (!total) return;
+          let activeIdx = 0;
+          let autoTimer = null;
+
+          function sizeCards() {
+            const viewport = track.parentElement;
+            const vw = viewport.offsetWidth;
+            const gap = 24;
+            // On narrow screens show one card at 100%; otherwise 3 visible (center + 2 peeking)
+            const perView = vw < 720 ? 1 : 3;
+            const cardW = Math.floor((vw - gap * (perView - 1)) / perView);
+            cards.forEach(c => { c.style.width = cardW + 'px'; });
+            return { vw, cardW, gap };
+          }
+
+          function goTo(idx, animate) {
+            if (animate === undefined) animate = true;
+            activeIdx = ((idx % total) + total) % total;
+            const { vw, cardW, gap } = sizeCards();
+            const activeCenter = activeIdx * (cardW + gap) + cardW / 2;
+            const trackX = vw / 2 - activeCenter;
+
+            if (animate && !prefersReduced) {
+              gsap.to(track, { x: trackX, duration: 0.8, ease: 'power3.inOut' });
+            } else {
+              gsap.set(track, { x: trackX });
+            }
+            cards.forEach((c, i) => c.classList.toggle('is-active', i === activeIdx));
+            dots .forEach((d, i) => d.classList.toggle('is-active', i === activeIdx));
+          }
+
+          function startAuto() {
+            stopAuto();
+            if (prefersReduced) return;
+            autoTimer = setInterval(() => goTo(activeIdx + 1), 6000);
+          }
+          function stopAuto() {
+            if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+          }
+
+          // Defer first position to after layout / font load
+          requestAnimationFrame(() => goTo(0, false));
+          window.addEventListener('load', () => goTo(activeIdx, false));
+
+          carousel.addEventListener('mouseenter', stopAuto);
+          carousel.addEventListener('mouseleave', startAuto);
+
+          if (prev) prev.addEventListener('click', () => { goTo(activeIdx - 1); startAuto(); });
+          if (next) next.addEventListener('click', () => { goTo(activeIdx + 1); startAuto(); });
+          dots.forEach((d, i) => d.addEventListener('click', () => { goTo(i); startAuto(); }));
+
+          // Swipe on touch
+          let touchX = 0;
+          track.addEventListener('touchstart', (e) => { touchX = e.touches[0].clientX; stopAuto(); }, { passive: true });
+          track.addEventListener('touchend', (e) => {
+            const dx = e.changedTouches[0].clientX - touchX;
+            if (Math.abs(dx) > 40) goTo(activeIdx + (dx < 0 ? 1 : -1));
+            startAuto();
+          });
+
+          // Resize — reposition without animation
+          let resizeTimer = null;
+          window.addEventListener('resize', () => {
+            if (resizeTimer) clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => goTo(activeIdx, false), 150);
+          });
+
+          startAuto();
+        })();
       } else {
         // No GSAP available — show content immediately
         document.querySelectorAll('.reveal, .reveal-stagger > *').forEach((el) => {
@@ -2514,6 +3484,102 @@
           el.textContent = el.dataset.count;
         });
       }
+
+      /* ============================================================
+         PHASE 3: KEYBOARD SHORTCUTS (desktop)
+         G→S/P/C navigation · / focus form · ? help · Esc close
+         ============================================================ */
+      (function initKeyboard() {
+        const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        if (isTouch) return;
+
+        const kbdHint  = document.getElementById('kbdHint');
+        const kbdModal = document.getElementById('kbdModal');
+
+        function openKbdModal() {
+          if (!kbdModal) return;
+          kbdModal.classList.add('is-open');
+          kbdModal.setAttribute('aria-hidden', 'false');
+        }
+        function closeKbdModal() {
+          if (!kbdModal) return;
+          kbdModal.classList.remove('is-open');
+          kbdModal.setAttribute('aria-hidden', 'true');
+        }
+
+        if (kbdHint) kbdHint.addEventListener('click', openKbdModal);
+        if (kbdModal) {
+          const backdrop = kbdModal.querySelector('.kbd-modal-backdrop');
+          const closeBtn = kbdModal.querySelector('.kbd-close');
+          if (backdrop) backdrop.addEventListener('click', closeKbdModal);
+          if (closeBtn) closeBtn.addEventListener('click', closeKbdModal);
+        }
+
+        function scrollToId(id) {
+          const el = document.getElementById(id);
+          if (!el) return;
+          if (lenis) {
+            lenis.scrollTo(el, { offset: -80 });
+          } else {
+            const top = el.getBoundingClientRect().top + window.scrollY - 80;
+            window.scrollTo({ top, behavior: prefersReduced ? 'auto' : 'smooth' });
+          }
+        }
+
+        let gPending = false;
+        let gTimer   = null;
+
+        document.addEventListener('keydown', (e) => {
+          // Always allow Escape to close the modal
+          if (e.key === 'Escape' && kbdModal && kbdModal.classList.contains('is-open')) {
+            closeKbdModal();
+            return;
+          }
+          // Skip shortcuts when user is typing
+          const t = e.target;
+          const tag = (t && t.tagName) || '';
+          if (/^(INPUT|TEXTAREA|SELECT)$/i.test(tag) || (t && t.isContentEditable)) return;
+          // Skip modifier combos (browser shortcuts)
+          if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+          // ? (Shift + /) — help
+          if (e.key === '?') {
+            e.preventDefault();
+            if (kbdModal && kbdModal.classList.contains('is-open')) closeKbdModal();
+            else openKbdModal();
+            return;
+          }
+          // / — focus contact form name
+          if (e.key === '/') {
+            e.preventDefault();
+            scrollToId('contact');
+            setTimeout(() => {
+              const nm = document.getElementById('cf-name');
+              if (nm) nm.focus();
+            }, 500);
+            return;
+          }
+          // G prefix
+          if (!gPending && (e.key === 'g' || e.key === 'G')) {
+            gPending = true;
+            if (gTimer) clearTimeout(gTimer);
+            gTimer = setTimeout(() => { gPending = false; }, 1500);
+            return;
+          }
+          if (gPending) {
+            const k = e.key.toLowerCase();
+            let handled = false;
+            if      (k === 'p') { scrollToId('projects'); handled = true; }
+            else if (k === 's') { scrollToId('services'); handled = true; }
+            else if (k === 'c') { scrollToId('contact');  handled = true; }
+            if (handled) {
+              e.preventDefault();
+              gPending = false;
+              if (gTimer) clearTimeout(gTimer);
+            }
+          }
+        });
+      })();
     })();
   </script>
 
