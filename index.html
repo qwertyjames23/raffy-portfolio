@@ -994,7 +994,7 @@
       margin-bottom: 10px;
     }
     .social-link {
-      display: inline-flex;
+      display: flex;
       align-items: center;
       gap: 14px;
       padding: 16px 20px;
@@ -1004,6 +1004,7 @@
       font-size: 14px;
       font-weight: 500;
       color: var(--text);
+      min-width: 0;
       transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease), border-color 0.2s var(--ease);
     }
     .social-link:hover {
@@ -1012,6 +1013,11 @@
       box-shadow: var(--shadow);
     }
     .social-link svg { width: 18px; height: 18px; color: var(--accent); flex-shrink: 0; }
+    .social-link span {
+      min-width: 0;
+      flex: 1 1 auto;
+      overflow-wrap: anywhere;
+    }
     .social-link-secondary { color: var(--text-2); font-weight: 400; font-size: 13px; }
 
     .contact-actions {
@@ -1144,24 +1150,42 @@
 
     .form-honeypot { position: absolute; left: -10000px; top: -10000px; visibility: hidden; }
 
+    /* Mailto click feedback toast */
+    .mailto-toast {
+      position: fixed;
+      left: 50%;
+      bottom: 32px;
+      transform: translate(-50%, 24px);
+      background: #0a0a0a;
+      color: #fff;
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.005em;
+      padding: 12px 18px;
+      border-radius: 999px;
+      box-shadow: 0 12px 30px -8px rgba(0,0,0,0.35);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 99998;
+      max-width: calc(100vw - 32px);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: opacity 0.25s var(--ease), transform 0.3s var(--ease);
+    }
+    .mailto-toast.is-visible {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
     /* ============================================================
        FOOTER
+       (legacy footer/.footer-text rules removed — the active footer is
+       <footer class="footer-signature"> styled below; the old
+       `footer .container { display:flex }` rule was forcing the
+       signature headline to shrink to min-content and stack vertically.)
        ============================================================ */
-    footer {
-      border-top: 1px solid var(--border);
-      padding: 32px 0;
-      margin-top: 40px;
-    }
-    footer .container {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 24px;
-    }
-    .footer-text {
-      font-size: 13px;
-      color: var(--text-2);
-    }
 
     /* ============================================================
        SCROLL-ANIMATION INITIAL STATES
@@ -1169,6 +1193,15 @@
        ============================================================ */
     body.motion-on .reveal   { opacity: 0; transform: translateY(40px); }
     body.motion-on .reveal-stagger > * { opacity: 0; transform: translateY(30px); }
+
+    /* Once an element has been revealed, lock it visible so nothing (cancelled
+       animation, ScrollTrigger desync, refresh, bfcache) can leave it hidden. */
+    body.motion-on .reveal.is-revealed,
+    body.motion-on .reveal-stagger.is-revealed > *,
+    body.motion-on .reveal-stagger > .is-revealed {
+      opacity: 1 !important;
+      transform: none !important;
+    }
 
     /* Hero intro starting states (motion-on only) */
     body.motion-on .hero-badge,
@@ -1194,43 +1227,40 @@
       will-change: transform, opacity;
     }
     .cursor-dot {
-      width: 8px;
-      height: 8px;
-      background: #4f46e5;
+      width: 5px;
+      height: 5px;
+      background: var(--text);
       border-radius: 50%;
       transition: opacity 0.3s var(--ease);
     }
     .cursor-ring {
-      width: 36px;
-      height: 36px;
-      border: 1.5px solid #4f46e5;
+      width: 28px;
+      height: 28px;
+      border: 1px solid rgba(10, 10, 10, 0.3);
       border-radius: 50%;
       background: transparent;
       transition:
         opacity 0.3s var(--ease),
-        width 0.25s var(--ease),
-        height 0.25s var(--ease),
-        background 0.25s var(--ease),
-        border-radius 0.25s var(--ease),
-        border-color 0.25s var(--ease);
+        width 0.22s var(--ease),
+        height 0.22s var(--ease),
+        border-color 0.22s var(--ease);
     }
     .cursor-dot.is-visible,
     .cursor-ring.is-visible { opacity: 1; }
     .cursor-ring.is-hover {
-      width: 60px;
-      height: 60px;
-      background: rgba(79, 70, 229, 0.2);
-      border-color: transparent;
+      width: 44px;
+      height: 44px;
+      border-color: rgba(10, 10, 10, 0.18);
     }
     .cursor-ring.is-input {
-      width: 3px;
-      height: 26px;
+      width: 2px;
+      height: 22px;
       border-radius: 2px;
-      background: #4f46e5;
+      background: var(--text);
       border-color: transparent;
     }
-    body.cursor-on,
-    body.cursor-on * { cursor: none; }
+    /* body.cursor-on,
+    body.cursor-on * { cursor: none; } */
     /* Text caret for typing is controlled by caret-color, unaffected by cursor:none */
 
     /* ============================================================
@@ -1408,7 +1438,6 @@
       .form-row-split { grid-template-columns: 1fr; }
 
       .nav-links { display: none; }
-      footer .container { flex-direction: column; text-align: center; gap: 8px; }
 
       /* Phase 2: hide section indicator on mobile */
       .section-indicator { display: none; }
@@ -1785,16 +1814,33 @@
     .footer-headline .char {
       display: inline-block;
       will-change: transform;
+      color: var(--text);
     }
-    .footer-headline.is-gradient {
-      background-image: linear-gradient(135deg, #0a0a0a 0%, #0a0a0a 30%, #4f46e5 50%, #ec4899 70%, #0a0a0a 90%);
-      background-size: 300% 100%;
+    /* Gradient must be applied to .char (not the parent), because
+       background-clip:text on a parent doesn't paint into inline-block
+       descendants — the chars would inherit transparent text-fill but
+       have no gradient of their own, leaving the headline invisible. */
+    .footer-headline.is-gradient .char {
+      background-image: linear-gradient(135deg, #0a0a0a 0%, #4f46e5 45%, #ec4899 70%, #0a0a0a 100%);
+      background-size: 200% 100%;
       background-repeat: no-repeat;
       -webkit-background-clip: text;
       background-clip: text;
       -webkit-text-fill-color: transparent;
-      color: transparent;
       animation: gradientShift 9s linear infinite;
+    }
+    /* Browsers without background-clip:text support fall back to the
+       solid .char color above — text stays readable. */
+    @supports not ((-webkit-background-clip: text) or (background-clip: text)) {
+      .footer-headline.is-gradient .char {
+        -webkit-text-fill-color: currentColor;
+        background-image: none;
+      }
+    }
+    @keyframes gradientShift {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
     .footer-email-link {
       display: inline-flex;
@@ -1865,35 +1911,8 @@
       .footer-meta { flex-direction: column; align-items: flex-start; gap: 12px; margin-top: 56px; }
     }
 
-    /* ============================================================
-       PHASE 3: CURSOR — View Live / View Code on project cards
-       ============================================================ */
-    .cursor-ring.is-card {
-      width: 84px;
-      height: 84px;
-      background: rgba(79, 70, 229, 0.95);
-      border-color: transparent;
-      color: white;
-      display: grid;
-      place-items: center;
-    }
-    .cursor-ring-label {
-      font-family: var(--mono);
-      font-size: 10px;
-      font-weight: 500;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: white;
-      opacity: 0;
-      transition: opacity 0.18s var(--ease);
-      pointer-events: none;
-      white-space: nowrap;
-    }
-    .cursor-ring.is-card .cursor-ring-label { opacity: 1; }
-    .cursor-ring.is-pulsing {
-      transform: translate3d(-50%, -50%, 0) scale(1.2) !important;
-      transition: transform 0.15s var(--ease);
-    }
+    /* cursor-ring-label retained for DOM structure but hidden */
+    .cursor-ring-label { display: none; }
 
     /* ============================================================
        PHASE 3: KEYBOARD SHORTCUTS
@@ -2020,9 +2039,6 @@
     </div>
   </div>
 
-  <!-- ========= PHASE 2: Custom cursor (Phase 3 adds label span for project cards) ========= -->
-  <div class="cursor-ring" aria-hidden="true"><span class="cursor-ring-label"></span></div>
-  <div class="cursor-dot"  aria-hidden="true"></div>
 
   <!-- ========= PHASE 2: Noise texture overlay ========= -->
   <div class="noise-overlay" aria-hidden="true"></div>
@@ -2268,7 +2284,7 @@
           <article class="project-card" data-live="false" data-link-label="View Code">
             <div class="project-thumb thumb-mbot">
               <div class="project-thumb-chrome" aria-hidden="true"><span></span><span></span><span></span></div>
-              <span class="project-thumb-initials">MB</span>
+              <img src="messenger_order_bot_screenshot.png" alt="Messenger Order Bot screenshot" class="project-screenshot">
             </div>
             <div class="project-body">
               <div class="project-status-row">
@@ -2321,7 +2337,7 @@
           <article class="project-card" data-live="true" data-link-label="View Live">
             <div class="project-thumb thumb-aa">
               <div class="project-thumb-chrome" aria-hidden="true"><span></span><span></span><span></span></div>
-              <span class="project-thumb-initials">AA</span>
+              <img src="autoaudit_screenshot.png" alt="AutoAudit.AI screenshot" class="project-screenshot">
               <svg class="project-thumb-cursor" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path d="M5 3l14 9-5.5 2L11 21z" fill="#ffffff" stroke="#0a0a0a" stroke-width="1.5" stroke-linejoin="round"/>
               </svg>
@@ -2348,7 +2364,7 @@
           <article class="project-card" data-live="false" data-link-label="View Code">
             <div class="project-thumb thumb-mac">
               <div class="project-thumb-chrome" aria-hidden="true"><span></span><span></span><span></span></div>
-              <span class="project-thumb-initials">MA</span>
+              <img src="Multi-Agent Content Pipeline.jpg" alt="Multi-Agent Content Pipeline screenshot" class="project-screenshot">
             </div>
             <div class="project-body">
               <div class="project-status-row">
@@ -2372,7 +2388,7 @@
           <article class="project-card" data-live="false" data-link-label="View Code">
             <div class="project-thumb thumb-pp">
               <div class="project-thumb-chrome" aria-hidden="true"><span></span><span></span><span></span></div>
-              <span class="project-thumb-initials">PP</span>
+              <img src="pacepilot.jpg" alt="PacePilot screenshot" class="project-screenshot">
             </div>
             <div class="project-body">
               <div class="project-status-row">
@@ -2504,8 +2520,8 @@
       </div>
     </section>
 
-    <!-- ========= TESTIMONIALS ========= -->
-    <section class="testimonials" id="testimonials">
+    <!-- ========= TESTIMONIALS (hidden — bring back when real quotes are ready) ========= -->
+    <section class="testimonials" id="testimonials" style="display:none">
       <div class="container">
         <div class="testimonials-intro reveal">
           <div class="eyebrow">05 — Social Proof</div>
@@ -2732,9 +2748,6 @@
       <div class="footer-meta">
         <div class="footer-meta-col">
           <span>© 2026 Raffy James Adams</span>
-        </div>
-        <div class="footer-meta-col">
-          <span>Built in the Philippines 🇵🇭</span>
         </div>
       </div>
     </div>
@@ -2989,6 +3002,10 @@
                 trigger: el,
                 start: 'top 85%',
                 once: true
+              },
+              onComplete: () => {
+                el.classList.add('is-revealed');
+                gsap.set(el, { clearProps: 'transform,willChange' });
               }
             });
           });
@@ -3005,6 +3022,10 @@
                 trigger: group,
                 start: 'top 82%',
                 once: true
+              },
+              onComplete: () => {
+                group.classList.add('is-revealed');
+                gsap.set(group.children, { clearProps: 'transform,willChange' });
               }
             });
           });
@@ -3148,9 +3169,9 @@
         gsap.matchMedia().add('(prefers-reduced-motion: no-preference) and (pointer: fine)', () => {
           if ('ontouchstart' in window) return; // double-guard: skip hybrid touch laptops
 
-          /* ========= PHASE 2: CUSTOM CURSOR ========= */
-          const dot  = document.querySelector('.cursor-dot');
-          const ring = document.querySelector('.cursor-ring');
+          /* ========= PHASE 2: CUSTOM CURSOR (disabled) ========= */
+          const dot  = null;
+          const ring = null;
           let cursorCleanup = () => {};
 
           if (dot && ring) {
@@ -3186,35 +3207,22 @@
             document.documentElement.addEventListener('mouseenter', onEnter);
             document.documentElement.addEventListener('mouseleave', onLeave);
 
-            // Cursor state: project-card > input > hover
-            const hoverSel = 'a, button, [role="button"], .marquee-item, .social-link, .tag, .service-card';
+            // Cursor state: input > hover
+            const hoverSel = 'a, button, [role="button"], .marquee-item, .social-link, .tag, .service-card, .project-card';
             const inputSel = 'input[type="text"], input[type="email"], input[type="search"], input[type="tel"], input[type="number"], input:not([type]), textarea';
-            const cardLabel = ring.querySelector('.cursor-ring-label');
             const onOver = (e) => {
               const input = e.target.closest(inputSel);
-              const card  = !input && e.target.closest('.project-card[data-link-label]');
-              const hover = !input && !card && (e.target.closest(hoverSel) || e.target.closest('.project-card'));
+              const hover = !input && e.target.closest(hoverSel);
               ring.classList.toggle('is-input', !!input);
-              ring.classList.toggle('is-card',  !!card);
               ring.classList.toggle('is-hover', !!hover);
-              if (card && cardLabel) {
-                cardLabel.textContent = card.getAttribute('data-link-label') || 'View';
-              }
             };
             const onOut = (e) => {
-              if (e.target.closest(hoverSel) || e.target.closest(inputSel) || e.target.closest('.project-card')) {
-                ring.classList.remove('is-hover', 'is-input', 'is-card');
+              if (e.target.closest(hoverSel) || e.target.closest(inputSel)) {
+                ring.classList.remove('is-hover', 'is-input');
               }
             };
             document.addEventListener('mouseover', onOver);
             document.addEventListener('mouseout',  onOut);
-
-            // Phase 3: click pulse on project cards
-            const onCardDown = (e) => { if (e.target.closest('.project-card')) ring.classList.add('is-pulsing'); };
-            const onCardUp   = ()  => ring.classList.remove('is-pulsing');
-            document.addEventListener('mousedown', onCardDown);
-            document.addEventListener('mouseup',   onCardUp);
-            document.addEventListener('mouseleave', onCardUp);
 
             cursorCleanup = () => {
               window.removeEventListener('mousemove', onMove);
@@ -3222,9 +3230,6 @@
               document.documentElement.removeEventListener('mouseleave', onLeave);
               document.removeEventListener('mouseover', onOver);
               document.removeEventListener('mouseout',  onOut);
-              document.removeEventListener('mousedown', onCardDown);
-              document.removeEventListener('mouseup',   onCardUp);
-              document.removeEventListener('mouseleave', onCardUp);
               document.body.classList.remove('cursor-on');
             };
           }
@@ -3484,6 +3489,156 @@
           el.textContent = el.dataset.count;
         });
       }
+
+      /* ============================================================
+         REVEAL SAFETY NET
+         Catches edge cases where GSAP/ScrollTrigger silently fails to
+         fire (Lenis desync, bfcache restore, fast scroll, hash-jump
+         landing past the trigger). Any .reveal element that enters the
+         viewport but isn't marked .is-revealed within 1.2s is forced
+         visible via the !important rule.
+         ============================================================ */
+      if ('IntersectionObserver' in window) {
+        const revealSafety = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            const el = entry.target;
+            setTimeout(() => {
+              if (!el.classList.contains('is-revealed')) {
+                const cs = window.getComputedStyle(el);
+                if (parseFloat(cs.opacity) < 0.99) {
+                  el.classList.add('is-revealed');
+                }
+              }
+            }, 1200);
+            revealSafety.unobserve(el);
+          });
+        }, { threshold: 0.05 });
+        document.querySelectorAll('.reveal').forEach((el) => revealSafety.observe(el));
+      }
+
+      /* ============================================================
+         FOOTER HEADLINE SAFETY NET
+         The "Let's make something." headline animates char-by-char via
+         GSAP+SplitType. If that pipeline silently fails (ScrollTrigger
+         desync, Lenis race, bfcache, etc.), the chars stay at
+         yPercent:110 / opacity:0 and the headline appears as empty
+         space. Detect this and force the chars visible.
+         ============================================================ */
+      (function footerHeadlineSafetyNet() {
+        const footerHeadline = document.querySelector('.footer-headline');
+        if (!footerHeadline) return;
+
+        function forceVisible() {
+          const chars = footerHeadline.querySelectorAll('.char');
+          if (!chars.length) {
+            // SplitType didn't run — leave the original text alone, just ensure visibility.
+            footerHeadline.style.opacity = '1';
+            footerHeadline.style.transform = 'none';
+            return;
+          }
+          chars.forEach((c) => {
+            if (window.gsap) {
+              window.gsap.set(c, { yPercent: 0, opacity: 1, clearProps: 'transform,willChange' });
+            } else {
+              c.style.transform = 'none';
+              c.style.opacity = '1';
+            }
+          });
+          if (!footerHeadline.classList.contains('is-gradient')) {
+            footerHeadline.classList.add('is-gradient');
+          }
+        }
+
+        if ('IntersectionObserver' in window) {
+          const obs = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+              if (!entry.isIntersecting) return;
+              setTimeout(() => {
+                const firstChar = footerHeadline.querySelector('.char');
+                if (!firstChar) { forceVisible(); return; }
+                const cs = window.getComputedStyle(firstChar);
+                if (parseFloat(cs.opacity) < 0.99) {
+                  forceVisible();
+                }
+              }, 1500);
+              obs.unobserve(footerHeadline);
+            });
+          }, { threshold: 0.05 });
+          obs.observe(footerHeadline);
+        } else {
+          // No IntersectionObserver — be defensive and force after a delay.
+          setTimeout(forceVisible, 2500);
+        }
+      })();
+
+      // After full page load (loader exits, fonts settle), ask ScrollTrigger
+      // to recompute trigger positions — Lenis + loader can shift layout.
+      window.addEventListener('load', () => {
+        if (window.ScrollTrigger) {
+          requestAnimationFrame(() => window.ScrollTrigger.refresh());
+        }
+      });
+
+      /* ============================================================
+         MAILTO ENHANCEMENT
+         Some users have no default mail client configured (common on
+         Windows when Gmail-in-browser is the only mailbox). The mailto:
+         link still fires but visibly does nothing. We layer on:
+           1) copy the address to clipboard
+           2) show a small toast confirming the copy
+           3) let the browser's native mailto handler run (default action)
+         The result: every click gives feedback regardless of OS state.
+         ============================================================ */
+      (function initMailtoFallback() {
+        const links = document.querySelectorAll('a[href^="mailto:"]');
+        if (!links.length) return;
+
+        // Toast element (lazy-created on first click)
+        let toastEl = null;
+        function showToast(msg) {
+          if (!toastEl) {
+            toastEl = document.createElement('div');
+            toastEl.className = 'mailto-toast';
+            document.body.appendChild(toastEl);
+          }
+          toastEl.textContent = msg;
+          toastEl.classList.add('is-visible');
+          clearTimeout(toastEl._t);
+          toastEl._t = setTimeout(() => toastEl.classList.remove('is-visible'), 3200);
+        }
+
+        function copyToClipboard(text) {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            return navigator.clipboard.writeText(text).then(() => true).catch(() => false);
+          }
+          // Legacy fallback
+          try {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.left = '-9999px';
+            document.body.appendChild(ta);
+            ta.select();
+            const ok = document.execCommand('copy');
+            document.body.removeChild(ta);
+            return Promise.resolve(ok);
+          } catch (e) { return Promise.resolve(false); }
+        }
+
+        links.forEach((a) => {
+          a.addEventListener('click', () => {
+            const email = (a.getAttribute('href') || '').replace(/^mailto:/i, '').split('?')[0];
+            if (!email) return;
+            copyToClipboard(email).then((ok) => {
+              showToast(ok
+                ? email + ' copied — opening your email app…'
+                : 'Opening your email app…');
+            });
+            // Note: we do NOT preventDefault — the browser still triggers mailto.
+          });
+        });
+      })();
 
       /* ============================================================
          PHASE 3: KEYBOARD SHORTCUTS (desktop)
